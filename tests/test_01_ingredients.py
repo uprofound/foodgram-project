@@ -20,7 +20,7 @@ class Test01IngredientAPI:
     def test_02_ingredient_post_not_allowed(self, client):
         data = {}
         response = client.post(self.BASE_URL, data=data)
-        assert response.status_code == 405, (
+        assert response.status_code in (401, 405), (
             'Проверьте, что создание ингредиента недоступно '
             f'через POST запрос к `{self.BASE_URL}`'
         )
