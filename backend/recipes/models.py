@@ -1,5 +1,8 @@
 from colorfield.fields import ColorField
+from django.core import validators
 from django.db import models
+
+from users.models import User  # isort:skip
 
 
 class Ingredient(models.Model):
@@ -17,3 +20,54 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recipes'
+    )
+    name = models.CharField(
+        max_length=200,
+        blank=False
+    )
+    image = models.ImageField(
+        upload_to='recipes/images/',
+        blank=False
+    )
+    text = models.TextField(
+        blank=False
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='RecipeIngredient',
+    )
+    tags = models.ManyToManyField(
+        Tag
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[validators.MinValueValidator(1)],
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class RecipeIngredient(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='recipe_ingredients',
+    )
+    amount = models.PositiveSmallIntegerField(
+        validators=[validators.MinValueValidator(1)],
+    )
+
+    def __str__(self):
+        return '{}: {}, {}'.format(self.recipe, self.ingredient, self.amount)
