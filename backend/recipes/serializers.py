@@ -1,4 +1,7 @@
-from rest_framework.serializers import ModelSerializer, ReadOnlyField
+from django.db import transaction
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework.serializers import (ModelSerializer, ReadOnlyField,
+                                        ValidationError)
 
 from .models import Ingredient, Recipe, RecipeIngredient, Tag
 
@@ -35,8 +38,100 @@ class RecipeSerializer(ModelSerializer):
         read_only=True,
         many=True,
     )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'name',
                   'image', 'text', 'cooking_time')
+
+    def tags_validate(self, data):
+        if not data:
+            raise ValidationError(
+                'В рецепте должен быть хотя бы один тег'
+            )
+
+        if len(data) != len(set(data)):
+            raise ValidationError('Теги в рецепте должны быть уникальными')
+
+        for _id in data:
+            if not Tag.objects.filter(id=_id).exists():
+                raise ValidationError(f'Тег с id = {_id} не найден')
+
+        return data
+
+    def ingredients_validate(self, data):
+        if not data:
+            raise ValidationError(
+                'В рецепте должен быть хотя бы один ингридиент'
+            )
+
+        ids = [item['id'] for item in data]
+        if len(ids) != len(set(ids)):
+            raise ValidationError(
+                'Ингридиенты в рецепте должны быть уникальными'
+            )
+        for _id in ids:
+            if not Ingredient.objects.filter(id=_id).exists():
+                raise ValidationError(
+                    f'Ингридиент с id = {_id} не найден'
+                )
+
+        amounts = [item['amount'] for item in data]
+        for amount in amounts:
+            if int(amount) <= 0:
+                raise ValidationError(
+                    'Количество ингредиента - целое число не менее 1'
+                )
+
+        return data
+
+    def validate(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        data['ingredients'] = self.ingredients_validate(ingredients)
+
+        tags = self.initial_data.get('tags')
+        data['tags'] = self.tags_validate(tags)
+
+        author = self.context.get('request').user
+        name = data.get('name')
+        if Recipe.objects.filter(author=author, name=name).exists():
+            raise ValidationError(
+                'У вас уже есть рецепт с таким названием'
+            )
+        data['author'] = author
+
+        cooking_time = data.get('cooking_time')
+        if not isinstance(cooking_time, int) or cooking_time <= 0:
+            raise ValidationError(
+                'Время приготовления - целое число не менее 1'
+            )
+
+        return data
+
+    def create_recipe_ingredients(self, ingredients, recipe):
+        for ingredient in ingredients:
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient_id=ingredient.get('id'),
+                amount=ingredient.get('amount'),
+            )
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        with transaction.atomic():
+            recipe = Recipe.objects.create(**validated_data)
+            self.create_recipe_ingredients(ingredients, recipe)
+            recipe.tags.set(tags)
+        return recipe
+
+    def update(self, recipe, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        with transaction.atomic():
+            recipe = super().update(recipe, validated_data)
+            recipe.ingredients.clear()
+            self.create_recipe_ingredients(ingredients, recipe)
+            recipe.tags.set(tags)
+        return recipe
