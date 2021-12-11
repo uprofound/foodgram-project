@@ -6,10 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .models import Ingredient, Recipe, ShoppingCart, Tag
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .permissions import IsAuthor, IsReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
-                          ShoppingCartSerializer, TagSerializer)
+                          RecipeSpecialSerializer, TagSerializer)
 from .utils import get_shopping_list_pdf
 
 
@@ -34,36 +34,47 @@ class RecipeViewSet(ModelViewSet):
         return get_shopping_list_pdf(request.user.id)
 
 
-class ShoppingCartView(RetrieveAPIView, DestroyAPIView):
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
+class RecipeSpecialView(RetrieveAPIView, DestroyAPIView):
+    MODELS = {
+        'shopping_cart': ShoppingCart,
+        'favorite': Favorite,
+    }
+    WORD_CASES = {
+        'shopping_cart': ['список покупок', 'списка покупок'],
+        'favorite': ['избранное', 'избранного'],
+    }
+    serializer_class = RecipeSpecialSerializer
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, recipe_id, *args, **kwargs):
+        url_name = self.request.resolver_match.url_name
+        model = self.MODELS[url_name]
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        _, created = ShoppingCart.objects.get_or_create(
+        _, created = model.objects.get_or_create(
             recipe=recipe,
             user=request.user
         )
         if not created:
             return Response(
-                {'Ошибка добавления в список покупок'},
+                {f'Ошибка добавления в {self.WORD_CASES[url_name][0]}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        serialized = ShoppingCartSerializer(recipe)
+        serialized = RecipeSpecialSerializer(recipe)
         return Response(serialized.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, recipe_id, *args, **kwargs):
+        url_name = self.request.resolver_match.url_name
+        model = self.MODELS[url_name]
         recipe = get_object_or_404(Recipe, id=recipe_id)
         try:
-            obj = ShoppingCart.objects.get(recipe=recipe, user=request.user)
+            obj = model.objects.get(recipe=recipe, user=request.user)
             obj.delete()
             return Response(
-                {'Рецепт успешно удалён из списка покупок'},
+                {f'Рецепт успешно удалён из {self.WORD_CASES[url_name][1]}'},
                 status=status.HTTP_204_NO_CONTENT
             )
-        except ShoppingCart.DoesNotExist:
+        except model.DoesNotExist:
             return Response(
-                {'Ошибка удаления из списка покупок'},
+                {f'Ошибка удаления из {self.WORD_CASES[url_name][1]}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
