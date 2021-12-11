@@ -71,3 +71,16 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return '{}: {}, {}'.format(self.recipe, self.ingredient, self.amount)
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )

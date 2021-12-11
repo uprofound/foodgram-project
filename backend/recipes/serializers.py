@@ -1,9 +1,9 @@
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (ModelSerializer, ReadOnlyField,
-                                        ValidationError)
+                                        SerializerMethodField, ValidationError)
 
-from .models import Ingredient, Recipe, RecipeIngredient, Tag
+from .models import Ingredient, Recipe, RecipeIngredient, ShoppingCart, Tag
 
 from users.serializers import CustomUserSerializer  # isort:skip
 
@@ -38,12 +38,19 @@ class RecipeSerializer(ModelSerializer):
         read_only=True,
         many=True,
     )
+    is_in_shopping_cart = SerializerMethodField()
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('id', 'tags', 'author', 'ingredients', 'name',
-                  'image', 'text', 'cooking_time')
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_in_shopping_cart',
+                  'name', 'image', 'text', 'cooking_time')
+
+    def get_is_in_shopping_cart(self, recipe):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
 
     def tags_validate(self, data):
         if not data:
@@ -135,3 +142,9 @@ class RecipeSerializer(ModelSerializer):
             self.create_recipe_ingredients(ingredients, recipe)
             recipe.tags.set(tags)
         return recipe
+
+
+class ShoppingCartSerializer(ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
