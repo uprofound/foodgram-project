@@ -7,3 +7,6 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150, blank=False)
     last_name = models.CharField(max_length=150, blank=False)
     password = models.CharField(max_length=150)
+
+    class Meta:
+        ordering = ['username']

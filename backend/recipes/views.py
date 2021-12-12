@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthor, IsReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeSpecialSerializer, TagSerializer)
@@ -27,6 +28,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (IsAuthor | IsReadOnly,)
+    pagination_class = LimitPageNumberPagination
 
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
