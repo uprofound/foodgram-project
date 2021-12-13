@@ -79,7 +79,7 @@ class RecipeIngredient(models.Model):
     )
 
     def __str__(self):
-        return '{}: {}, {}'.format(self.recipe, self.ingredient, self.amount)
+        return '{}: {} - {}'.format(self.recipe, self.ingredient, self.amount)
 
 
 class ShoppingCart(models.Model):
@@ -94,6 +94,11 @@ class ShoppingCart(models.Model):
         related_name='shopping_cart'
     )
 
+    def __str__(self):
+        return 'Рецепт "{}" в списке покупок пользователя "{}"'.format(
+            self.recipe, self.user
+        )
+
 
 class Favorite(models.Model):
     user = models.ForeignKey(
@@ -106,3 +111,8 @@ class Favorite(models.Model):
         on_delete=models.CASCADE,
         related_name='favorites'
     )
+
+    def __str__(self):
+        return 'Рецепт "{}" в избранном пользователя "{}"'.format(
+            self.recipe, self.user
+        )

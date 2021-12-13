@@ -32,3 +32,6 @@ class Subscription(models.Model):
                 name='unique_user_author',
             )
         ]
+
+    def __str__(self):
+        return f'Subscription user "{self.user}" to author "{self.author}"'
