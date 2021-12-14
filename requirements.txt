@@ -1,7 +1,7 @@
 Django==3.0.5
 django-colorfield==0.5.0
+django-filter==21.1
 djangorestframework==3.11.0
 djoser==2.1.0
 drf-extra-fields==3.2.1
 Pillow==8.4.0
-
