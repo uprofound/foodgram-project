@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
+# from rest_framework.filters import SearchFilter
 from rest_framework.generics import DestroyAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -17,8 +18,17 @@ from .utils import get_shopping_list_pdf
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
-    queryset = Ingredient.objects.all()
+    # queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
+    # filter_backends = (SearchFilter,)  # не понимаю - почему не срабатывает?
+    # search_fields = ('^name',)         # сделала поиск через get_queryset
+
+    def get_queryset(self):
+        name_starts_with = self.request.query_params.get('name')
+        if name_starts_with:
+            return Ingredient.objects.filter(name__startswith=name_starts_with)
+        return Ingredient.objects.all()
 
 
 class TagViewSet(ReadOnlyModelViewSet):
