@@ -38,6 +38,5 @@ docker-compose exec backend python manage.py createsuperuser
 
 Остановка работы контейнеров с удалением volumes и images:
 ```bash
-docker-compose down
-```
 docker-compose down --volumes --rmi local
+```
