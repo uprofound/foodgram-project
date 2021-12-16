@@ -11,6 +11,12 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_name_measurement_unit',
+            )
+        ]
 
     def __str__(self):
         return '{}, {}'.format(self.name, self.measurement_unit)

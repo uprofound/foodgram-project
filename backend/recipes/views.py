@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 # from rest_framework.filters import SearchFilter
-from rest_framework.generics import DestroyAPIView, RetrieveAPIView
+from rest_framework.generics import RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -51,7 +51,7 @@ class RecipeViewSet(ModelViewSet):
         return get_shopping_list_pdf(request.user.id)
 
 
-class RecipeSpecialView(RetrieveAPIView, DestroyAPIView):
+class RecipeSpecialView(RetrieveDestroyAPIView):
     MODELS = {
         'shopping_cart': ShoppingCart,
         'favorite': Favorite,
@@ -63,10 +63,15 @@ class RecipeSpecialView(RetrieveAPIView, DestroyAPIView):
     serializer_class = RecipeSpecialSerializer
     permission_classes = (IsAuthenticated, )
 
-    def get(self, request, recipe_id, *args, **kwargs):
-        url_name = self.request.resolver_match.url_name
+    def init(self, url_name):
         model = self.MODELS[url_name]
+        recipe_id = self.kwargs.get('recipe_id')
         recipe = get_object_or_404(Recipe, id=recipe_id)
+        return model, recipe
+
+    def get(self, request, *args, **kwargs):
+        url_name = request.resolver_match.url_name
+        model, recipe = self.init(url_name)
         _, created = model.objects.get_or_create(
             recipe=recipe,
             user=request.user
@@ -79,10 +84,9 @@ class RecipeSpecialView(RetrieveAPIView, DestroyAPIView):
         serialized = RecipeSpecialSerializer(recipe)
         return Response(serialized.data, status=status.HTTP_201_CREATED)
 
-    def delete(self, request, recipe_id, *args, **kwargs):
-        url_name = self.request.resolver_match.url_name
-        model = self.MODELS[url_name]
-        recipe = get_object_or_404(Recipe, id=recipe_id)
+    def delete(self, request, *args, **kwargs):
+        url_name = request.resolver_match.url_name
+        model, recipe = self.init(url_name)
         try:
             obj = model.objects.get(recipe=recipe, user=request.user)
             obj.delete()

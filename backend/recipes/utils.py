@@ -19,7 +19,7 @@ def get_shopping_list_pdf(user_id):
         ingredient['total']
     ) for ingredient in summed_ingredients]
 
-    response = HttpResponse(shopping_list, 'Content-Type: application/pdf')
+    response = HttpResponse(shopping_list, 'Content-Type: application/txt')
     response['Content-Disposition'] = ('attachment; '
-                                       'filename="shopping_list.pdf"')
+                                       'filename="shopping_list.txt"')
     return response
