@@ -2,13 +2,12 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
-# from rest_framework.filters import SearchFilter
 from rest_framework.generics import RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .filters import RecipeFilter
+from .filters import IngredientSearchFilter, RecipeFilter
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthor, IsReadOnly
@@ -18,17 +17,11 @@ from .utils import get_shopping_list
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
-    # queryset = Ingredient.objects.all()
+    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    # filter_backends = (SearchFilter,)  # не понимаю - почему не срабатывает?
-    # search_fields = ('^name',)         # сделала поиск через get_queryset
-
-    def get_queryset(self):
-        name_starts_with = self.request.query_params.get('name')
-        if name_starts_with:
-            return Ingredient.objects.filter(name__startswith=name_starts_with)
-        return Ingredient.objects.all()
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
