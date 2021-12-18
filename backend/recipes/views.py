@@ -56,15 +56,15 @@ class RecipeSpecialView(RetrieveDestroyAPIView):
     serializer_class = RecipeSpecialSerializer
     permission_classes = (IsAuthenticated, )
 
-    def initiate(self, url_name):
-        model = self.MODELS[url_name]
+    def get_recipe_and_destination_model(self, url_name):
         recipe_id = self.kwargs.get('recipe_id')
         recipe = get_object_or_404(Recipe, id=recipe_id)
-        return model, recipe
+        model = self.MODELS[url_name]
+        return recipe, model
 
     def get(self, request, *args, **kwargs):
         url_name = request.resolver_match.url_name
-        model, recipe = self.initiate(url_name)
+        recipe, model = self.get_recipe_and_destination_model(url_name)
         _, created = model.objects.get_or_create(
             recipe=recipe,
             user=request.user
@@ -79,7 +79,7 @@ class RecipeSpecialView(RetrieveDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         url_name = request.resolver_match.url_name
-        model, recipe = self.initiate(url_name)
+        recipe, model = self.get_recipe_and_destination_model(url_name)
         try:
             obj = model.objects.get(recipe=recipe, user=request.user)
             obj.delete()

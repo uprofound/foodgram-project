@@ -17,7 +17,7 @@ def get_shopping_list(user_id):
         ingredient['total']
     ) for ingredient in shopping_set]
 
-    response = HttpResponse(shopping_list, 'Content-Type: application/txt')
+    response = HttpResponse(shopping_list, 'Content-Type: text/plain')
     response['Content-Disposition'] = ('attachment; '
                                        'filename="shopping_list.txt"')
     return response
