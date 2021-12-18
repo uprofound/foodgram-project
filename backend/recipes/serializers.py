@@ -60,7 +60,7 @@ class RecipeSerializer(ModelSerializer):
             return False
         return ShoppingCart.objects.filter(user=user, recipe=recipe).exists()
 
-    def tags_validate(self, data):
+    def validate_tags(self, data):
         if not data:
             raise ValidationError(
                 'В рецепте должен быть хотя бы один тег'
@@ -75,7 +75,7 @@ class RecipeSerializer(ModelSerializer):
 
         return data
 
-    def ingredients_validate(self, data):
+    def validate_ingredients(self, data):
         if not data:
             raise ValidationError(
                 'В рецепте должен быть хотя бы один ингредиент'
@@ -102,18 +102,21 @@ class RecipeSerializer(ModelSerializer):
         return data
 
     def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
-        data['ingredients'] = self.ingredients_validate(ingredients)
+        data['ingredients'] = self.validate_ingredients(
+            self.initial_data.get('ingredients')
+        )
 
-        tags = self.initial_data.get('tags')
-        data['tags'] = self.tags_validate(tags)
+        data['tags'] = self.validate_tags(
+            self.initial_data.get('tags')
+        )
 
         author = self.context.get('request').user
-        name = data.get('name')
-        if Recipe.objects.filter(author=author, name=name).exists():
-            raise ValidationError(
-                'У вас уже есть рецепт с таким названием'
-            )
+        if self.context.get('request').method == 'POST':
+            name = data.get('name')
+            if Recipe.objects.filter(author=author, name=name).exists():
+                raise ValidationError(
+                    'У вас уже есть рецепт с таким названием'
+                )
         data['author'] = author
 
         cooking_time = data.get('cooking_time')
