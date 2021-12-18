@@ -4,12 +4,10 @@ from django.http import HttpResponse
 from .models import RecipeIngredient
 
 
-def get_shopping_list_pdf(user_id):
-    shopping_list = RecipeIngredient.objects.filter(
+def get_shopping_list(user_id):
+    shopping_set = RecipeIngredient.objects.filter(
         recipe__shopping_cart__user=user_id
-    ).values_list('ingredient__name', 'ingredient__measurement_unit', 'amount')
-
-    summed_ingredients = shopping_list.values(
+    ).values(
         'ingredient__name', 'ingredient__measurement_unit'
     ).annotate(total=Sum('amount'))
 
@@ -17,7 +15,7 @@ def get_shopping_list_pdf(user_id):
         ingredient['ingredient__name'],
         ingredient['ingredient__measurement_unit'],
         ingredient['total']
-    ) for ingredient in summed_ingredients]
+    ) for ingredient in shopping_set]
 
     response = HttpResponse(shopping_list, 'Content-Type: application/txt')
     response['Content-Disposition'] = ('attachment; '

@@ -3,9 +3,8 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (ModelSerializer, ReadOnlyField,
                                         SerializerMethodField, ValidationError)
 
-from .models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                     ShoppingCart, Tag)
-
+from .models import (Favorite, Ingredient, Recipe,  # isort:skip
+                     RecipeIngredient, ShoppingCart, Tag)
 from users.serializers import CustomUserSerializer  # isort:skip
 
 
@@ -79,18 +78,18 @@ class RecipeSerializer(ModelSerializer):
     def ingredients_validate(self, data):
         if not data:
             raise ValidationError(
-                'В рецепте должен быть хотя бы один ингридиент'
+                'В рецепте должен быть хотя бы один ингредиент'
             )
 
         ids = [item['id'] for item in data]
         if len(ids) != len(set(ids)):
             raise ValidationError(
-                'Ингридиенты в рецепте должны быть уникальными'
+                'Ингредиенты в рецепте должны быть уникальными'
             )
         for _id in ids:
             if not Ingredient.objects.filter(id=_id).exists():
                 raise ValidationError(
-                    f'Ингридиент с id = {_id} не найден'
+                    f'Ингредиент с id = {_id} не найден'
                 )
 
         amounts = [item['amount'] for item in data]

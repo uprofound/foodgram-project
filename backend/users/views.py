@@ -4,9 +4,10 @@ from rest_framework import permissions, status
 from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
 from rest_framework.response import Response
 
-from .models import Subscription, User
-from .pagination import LimitPageNumberPagination
-from .serializers import CustomUserSerializer, SubscriptionSerializer
+from .models import Subscription, User  # isort:skip
+from .serializers import (CustomUserSerializer,  # isort:skip
+                          SubscriptionSerializer)
+from recipes.pagination import LimitPageNumberPagination  # isort:skip
 
 
 class CustomUserViewSet(UserViewSet):

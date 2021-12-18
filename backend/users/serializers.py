@@ -2,8 +2,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from .models import Subscription, User
-
+from .models import Subscription, User  # isort:skip
 from recipes.models import Recipe  # isort:skip
 
 

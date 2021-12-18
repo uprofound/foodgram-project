@@ -14,7 +14,7 @@ from .pagination import LimitPageNumberPagination
 from .permissions import IsAuthor, IsReadOnly
 from .serializers import (IngredientSerializer, RecipeSerializer,
                           RecipeSpecialSerializer, TagSerializer)
-from .utils import get_shopping_list_pdf
+from .utils import get_shopping_list
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -48,7 +48,7 @@ class RecipeViewSet(ModelViewSet):
     @action(methods=['get'], detail=False,
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        return get_shopping_list_pdf(request.user.id)
+        return get_shopping_list(request.user.id)
 
 
 class RecipeSpecialView(RetrieveDestroyAPIView):
@@ -63,7 +63,7 @@ class RecipeSpecialView(RetrieveDestroyAPIView):
     serializer_class = RecipeSpecialSerializer
     permission_classes = (IsAuthenticated, )
 
-    def init(self, url_name):
+    def initiate(self, url_name):
         model = self.MODELS[url_name]
         recipe_id = self.kwargs.get('recipe_id')
         recipe = get_object_or_404(Recipe, id=recipe_id)
@@ -71,7 +71,7 @@ class RecipeSpecialView(RetrieveDestroyAPIView):
 
     def get(self, request, *args, **kwargs):
         url_name = request.resolver_match.url_name
-        model, recipe = self.init(url_name)
+        model, recipe = self.initiate(url_name)
         _, created = model.objects.get_or_create(
             recipe=recipe,
             user=request.user
@@ -86,7 +86,7 @@ class RecipeSpecialView(RetrieveDestroyAPIView):
 
     def delete(self, request, *args, **kwargs):
         url_name = request.resolver_match.url_name
-        model, recipe = self.init(url_name)
+        model, recipe = self.initiate(url_name)
         try:
             obj = model.objects.get(recipe=recipe, user=request.user)
             obj.delete()
