@@ -5,3 +5,4 @@ djangorestframework==3.11.0
 djoser==2.1.0
 drf-extra-fields==3.2.1
 Pillow==8.4.0
+python-dotenv==0.19.2
