@@ -5,13 +5,16 @@ from .common import api_create_user, auth_client
 
 class Test02UserAPI:
     BASE_URL = '/api/users/'
-    USER_RESPONSE_FIELDS = (
+    USER_FIELDS = (
         'email',
         'id',
         'username',
         'first_name',
         'last_name'
     )
+
+    def get_user_data(self, user):
+        return {field: getattr(user, field) for field in self.USER_FIELDS}
 
     @pytest.mark.django_db(transaction=True)
     def test_01_get_user_list_not_authorized(self, client):
@@ -28,10 +31,19 @@ class Test02UserAPI:
         )
 
         _user = api_create_user(client)
+
         response = client.get(self.BASE_URL)
         data = response.json()
+        user_data_in_response = data.get('results')[0]
 
-        assert data[0]['email'] == _user.email, (
+        _user_data = self.get_user_data(_user)
+        _user_data['is_subscribed'] = False
+
+        assert (data.get('count') == 1
+                and data.get('next') is None
+                and data.get('previous') is None
+                and len(data.get('results')) == 1
+                and user_data_in_response == _user_data), (
             f'Проверьте, что GET запрос к "{self.BASE_URL}"'
             ' возвращает корректные данные'
         )
@@ -59,11 +71,11 @@ class Test02UserAPI:
         )
 
         data = response.json()
-        _data = {}
-        for field in self.USER_RESPONSE_FIELDS:
-            _data[field] = getattr(_user, field)
 
-        assert data == _data, (
+        _user_data = self.get_user_data(_user)
+        _user_data['is_subscribed'] = False
+
+        assert data == _user_data, (
             f'Проверьте, что авторизованный GET запрос к "{self.BASE_URL}"'
             ' возвращает корректные данные'
         )
@@ -78,8 +90,9 @@ class Test02UserAPI:
             f'Страница "{url}" не найдена, проверьте этот адрес в urls.py'
         )
 
-        assert response.status_code == 401, (
-            f'Проверьте, что GET запрос к "{url}" требует авторизации'
+        assert response.status_code == 200, (
+            f'Проверьте, что GET запрос к "{self.BASE_URL}'
+            '{id}/" не требует авторизации'
         )
 
         _auth_client = auth_client(_first_user)
@@ -93,11 +106,11 @@ class Test02UserAPI:
         )
 
         data = response.json()
-        _data = {}
-        for field in self.USER_RESPONSE_FIELDS:
-            _data[field] = getattr(_second_user, field)
 
-        assert data == _data, (
+        _user_data = self.get_user_data(_second_user)
+        _user_data['is_subscribed'] = False
+
+        assert data == _user_data, (
             f'Проверьте, что авторизованный GET запрос к "{self.BASE_URL}"'
             ' возвращает корректные данные'
         )
