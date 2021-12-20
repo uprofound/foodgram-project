@@ -43,9 +43,9 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          dockerfile: ./infra_dev/Dockerfile_dev
+          file: ./infra_dev/Dockerfile_dev
           push: true
-          tags: uprofound/foodgram:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/foodgram:latest
 
   send_message:
     runs-on: ubuntu-latest
