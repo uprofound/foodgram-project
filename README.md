@@ -1,3 +1,5 @@
+[![foodgram_workflow](https://github.com/uprofound/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)](https://github.com/uprofound/foodgram-project-react/actions/workflows/foodgram_workflow.yml)
+
 # praktikum_new_diplom
 
 Для проверки работоспособности проекта есть возможность наполнить БД тестовыми данными и запустить приложение локально в тестовых docker-контейнерах.  
