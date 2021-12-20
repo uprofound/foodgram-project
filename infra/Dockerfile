@@ -11,4 +11,4 @@ RUN apt update && \
 
 COPY /backend .
 
-CMD ["gunicorn", "api_yamdb.wsgi", "-w", "4", "-t", "600", "-b", "0.0.0.0:8000"]
+CMD ["gunicorn", "foodgram.wsgi", "-w", "4", "-t", "600", "-b", "0.0.0.0:8000"]
