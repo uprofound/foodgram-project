@@ -78,7 +78,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            ${{ github.workflow }} on branch ${{ github.ref_name }} finished!
+            Test ${{ github.workflow }} on branch ${{ github.ref_name }} finished!
 
             Job results:
             [tests]:  ${{ needs.tests.result }}
