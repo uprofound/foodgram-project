@@ -11,4 +11,4 @@ RUN apt update && \
 
 COPY /backend .
 
-CMD ['gunicorn', 'foodgram_project.wsgi:application', '--bind', '0:8000']
+CMD ['gunicorn', 'foodgram.wsgi:application', '--bind', '0:8000']
